@@ -18,6 +18,8 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.11",
+    "@tanstack/react-query": "^5.83.0",
+    "@tanstack/react-query-devtools": "^5.83.0",
     "axios": "^1.11.0",
     "msw": "^2.1.5",
     "react": "^18.2.0",
