@@ -1,25 +1,39 @@
-import { useHistory } from "react-router-dom";
-import { useForm } from "react-hook-form";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+
+// API’ye yeni kişi ekleyen fonksiyon
+const addContact = async (data) => {
+  const response = await axios.post(
+    "https://688247fb66a7eb81224e18ff.mockapi.io/fihrist/api/contact",
+    data
+  );
+  return response.data;
+};
 
 export default function Form() {
-  const history = useHistory();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const {
     register,
     handleSubmit,
     formState: { isValid, errors },
   } = useForm({ mode: "all" });
 
+  // useMutation ile ekleme işlemi
+  const mutation = useMutation({
+    mutationFn: addContact,
+    onSuccess: () => {
+      // Ekleme başarılıysa, contacts query’sini geçersiz kıl
+      queryClient.invalidateQueries({ queryKey: ["contacts"] });
+      navigate("/");
+    },
+  });
+
   const handleFormSubmit = (data) => {
     if (!isValid) return;
-    axios
-      .post(
-        `https://688247fb66a7eb81224e18ff.mockapi.io/fihrist/api/contact`,
-        data
-      )
-      .then((res) => {
-        history.push("/");
-      });
+    mutation.mutate(data);
   };
 
   return (
@@ -66,12 +80,13 @@ export default function Form() {
         </ul>
       )}
       <p>
-        <button type="submit">Save</button>
+        <button type="submit" disabled={mutation.isLoading}>
+          {mutation.isLoading ? "Kaydediliyor..." : "Save"}
+        </button>
         <button
           type="button"
-          onClick={() => {
-            history.goBack();
-          }}
+          onClick={() => navigate(-1)}
+          disabled={mutation.isLoading}
         >
           Cancel
         </button>
