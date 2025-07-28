@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import { useForm } from "react-hook-form";
 
 // API’ye yeni kişi ekleyen fonksiyon
@@ -13,7 +13,7 @@ const addContact = async (data) => {
 };
 
 export default function Form() {
-  const navigate = useNavigate();
+  const navigate = useHistory();
   const queryClient = useQueryClient();
   const {
     register,

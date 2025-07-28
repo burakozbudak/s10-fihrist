@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useHistory } from "react-router-dom";
 
 // API’den kişi bilgisini çeken fonksiyon
 const getContact = async (contactId) => {
@@ -19,7 +19,7 @@ const deleteContact = async (contactId) => {
 
 export default function Contact() {
   const { contactId } = useParams();
-  const navigate = useNavigate();
+  const navigate = useHistory();
   const queryClient = useQueryClient();
 
   // useQuery ile kişi bilgisini al
