@@ -1,17 +1,25 @@
+import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 
-export default function SideBar() {
-  const [contacts, setContacts] = useState([]);
+// API’den kişi listesini çeken fonksiyon
+const getContacts = async () => {
+  const response = await axios.get(
+    "https://688247fb66a7eb81224e18ff.mockapi.io/fihrist/api/contact"
+  );
+  return response.data;
+};
 
-  useEffect(() => {
-    axios
-      .get("https://688247fb66a7eb81224e18ff.mockapi.io/fihrist/api/contact")
-      .then((res) => {
-        setContacts(res.data);
-      });
-  }, []);
+export default function SideBar() {
+  // useQuery ile kişi listesini al
+  const {
+    data: contacts = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["contacts"], // Benzersiz query anahtarı
+    queryFn: getContacts,
+  });
 
   return (
     <div
@@ -28,7 +36,11 @@ export default function SideBar() {
         </Link>
       </div>
       <nav className="px-8 flex-1 overflow-auto pt-4">
-        {contacts.length ? (
+        {isLoading ? (
+          <p>Yükleniyor...</p>
+        ) : error ? (
+          <p>Hata: {error.message}</p>
+        ) : contacts.length ? (
           <ul className="contactList p-0 m-0 list-none">
             {contacts.map((contact) => (
               <li key={contact.id} className="my-1 mx-0">
