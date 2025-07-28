@@ -1,34 +1,50 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { useHistory } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+
+// API’den kişi bilgisini çeken fonksiyon
+const getContact = async (contactId) => {
+  const response = await axios.get(
+    `https://688247fb66a7eb81224e18ff.mockapi.io/fihrist/api/contact/${contactId}`
+  );
+  return response.data;
+};
+
+// API’den kişi silen fonksiyon
+const deleteContact = async (contactId) => {
+  await axios.delete(
+    `https://688247fb66a7eb81224e18ff.mockapi.io/fihrist/api/contact/${contactId}`
+  );
+};
 
 export default function Contact() {
   const { contactId } = useParams();
-  const [contact, setContact] = useState();
-  const history = useHistory();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    axios
-      .get(
-        `https://688247fb66a7eb81224e18ff.mockapi.io/fihrist/api/contact/${contactId}`
-      )
-      .then((res) => {
-        setContact(res.data);
-      });
-  }, [contactId]);
+  // useQuery ile kişi bilgisini al
+  const {
+    data: contact,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["contact", contactId], // Kişiye özgü query anahtarı
+    queryFn: () => getContact(contactId),
+  });
 
-  const handleDelete = () => {
-    axios
-      .delete(
-        `https://688247fb66a7eb81224e18ff.mockapi.io/fihrist/api/contact/${contactId}`
-      )
-      .then((res) => {
-        history.push("/");
-      });
-  };
+  // useMutation ile silme işlemi
+  const mutation = useMutation({
+    mutationFn: deleteContact,
+    onSuccess: () => {
+      // Silme başarılıysa, contacts query’sini geçersiz kıl
+      queryClient.invalidateQueries({ queryKey: ["contacts"] });
+      navigate("/");
+    },
+  });
 
-  if (!contact) return "Böyle bir kullanıcı yok";
+  if (isLoading) return <p>Yükleniyor...</p>;
+  if (error) return <p>Hata: {error.message}</p>;
+  if (!contact) return <p>Böyle bir kullanıcı yok</p>;
 
   return (
     <div id="contact" className="max-w-2xl flex gap-8 items-center">
@@ -51,7 +67,7 @@ export default function Contact() {
             </>
           ) : (
             <i>No Name</i>
-          )}{" "}
+          )}
         </h1>
 
         {contact.email && (
@@ -67,8 +83,12 @@ export default function Contact() {
         )}
 
         <div className="mt-6">
-          <button className="text-red-500" onClick={handleDelete}>
-            Delete
+          <button
+            className="text-red-500"
+            onClick={() => mutation.mutate(contactId)}
+            disabled={mutation.isLoading}
+          >
+            {mutation.isLoading ? "Siliniyor..." : "Delete"}
           </button>
         </div>
       </div>
